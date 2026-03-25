@@ -268,25 +268,50 @@ if not data.empty:
 
 else:
     # -------------------------------------------------------------------
-    # PAGE VIDE : INSTRUCTIONS DE DÉMARRAGE
+    # INTERFACE D'ENGAGEMENT INITIAL (SI AUCUNE CIBLE)
     # -------------------------------------------------------------------
-    col_info1, col_info2 = st.columns([1, 3])
+    st.markdown("<br>", unsafe_allow_html=True)
+    col_info1, col_info2 = st.columns([1, 2])
+    
     with col_info1:
-        st.image("https://img.icons8.com/?size=100&id=121175&format=png&color=00ffcc", width=200) # Eagle Icon
+        st.image("https://img.icons8.com/?size=100&id=121175&format=png&color=00ffcc", width=250)
+    
     with col_info2:
-        st.title("🦅 Bienvenue sur Argus IA : Poste de Commandement C2")
+        st.title("🦅 Système Argus IA : Prêt pour l'Engagement")
+        st.info("Le poste de commandement est opérationnel, mais aucune unité de surveillance n'est déployée.")
+        
+        # FORMULAIRE DE DÉMARRAGE RAPIDE
+        with st.container(border=True):
+            st.subheader("🎯 Déployer votre première cible")
+            
+            init_name = st.text_input("📦 Nom du produit", placeholder="ex: iPad Pro M5", key="init_name")
+            init_price = st.number_input("💰 Prix d'alerte (€)", min_value=0.0, step=10.0, key="init_price")
+            
+            init_sites = st.multiselect(
+                "🌐 Vecteurs de recherche",
+                options=["Amazon", "eBay", "LeBonCoin"],
+                default=["Amazon", "eBay"],
+                key="init_sites"
+            )
+            
+            st.write("") # Espace de respiration
+            
+            # LE BOUTON MAJESTUEUX
+            if st.button("🚀 ACTIVER LE PROTOCOLE DE SURVEILLANCE", use_container_width=True):
+                if init_name and init_price > 0:
+                    sites_str = ",".join(init_sites)
+                    db.add_target(init_name, init_price, sites_str)
+                    st.success(f"Protocole activé pour {init_name} !")
+                    st.balloons()
+                    st.rerun()
+                else:
+                    st.error("⚠️ Erreur d'initialisation : Données manquantes.")
+
+    st.divider()
+    with st.expander("🛠️ Rappel des prérequis techniques (Back-end)"):
         st.markdown("""
-        Votre système de veille de marché est **prêt pour l'engagement**. La base de données est actuellement vierge de toute cible.
-        
-        ### Instructions de déploiement :
-        
-        1.  **🎯 Définir une Cible** : Dans le panneau de droite, entrez le nom d'un produit, un prix d'alerte et sélectionnez vos sources.
-        2.  **🚀 Lancer l'Analyse** : Une fois la cible activée, cliquez sur 'Lancer Scan IA' pour initier le premier cycle de collecte et de décision.
-        3.  **Analyse** : Le tableau de bord se peuplera automatiquement de KPIs, de graphiques de tendances et de verdicts IA.
-        
-        ### Rappel de Configuration (Back-end) :
-        * Assurez-vous que vos clés **Twilio** et **Resend** sont bien configurées dans leurs fichiers respectifs pour recevoir les alertes omicanales.
-        * Vérifiez que votre base de données SQL a été mise à jour pour accepter le paramètre `sites` via la commande `ALTER TABLE`.
-        
+        * **API Keys** : Vérifiez l'injection de vos secrets Resend/Twilio.
+        * **SQL Schema** : Assurez-vous que la colonne `sites` est présente dans la table `targets`.
         """)
+
 
