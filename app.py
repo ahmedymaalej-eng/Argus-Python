@@ -114,28 +114,27 @@ with col_head2:
     st.caption("鷹 (Argus) - Système autonome de surveillance et de décision prédictive sur les marchés")
 
 st.divider()
-
-# --- CORPS PRINCIPAL ---
+# --- CORPS PRINCIPAL (STRUCTURE TOUJOURS ACTIVE) ---
 data = load_full_data()
 targets_df = load_targets()
-
 
 # 1. SECTION KPI (Observatoire Macro)
 # -------------------------------------------------------------------
 k1, k2, k3, k4 = st.columns(4)
 with k1:
-    st.metric("📡 Dernière Synchronisation", str(data['timestamp'].iloc[0])[11:19])
+    # Valeur par défaut si data est vide
+    last_sync = str(data['timestamp'].iloc[0])[11:19] if not data.empty else "--:--:--"
+    st.metric("📡 Dernière Synchronisation", last_sync)
 with k2:
     st.metric("🎯 Cibles Actives", len(targets_df))
 with k3:
-    # Calcul du meilleur deal (différence prix vs cible)
-    if 'target_price' in data.columns and not data['target_price'].isna().all():
+    # Calcul sécurisé du deal
+    best_val = "0€"
+    if not data.empty and 'target_price' in data.columns:
         data['deal_delta'] = data['target_price'] - data['price']
-        best_deal = data['deal_delta'].max()
-        best_prod = data.loc[data['deal_delta'].idxmax(), 'product_name'] if best_deal > 0 else "N/A"
-        st.metric("🏆 Meilleure Opportunité", f"+{best_deal}€" if best_deal > 0 else "0€", help=best_prod)
-    else:
-        st.metric("🏆 Meilleure Opportunité", "Analyse en cours")
+        if data['deal_delta'].max() > 0:
+            best_val = f"+{data['deal_delta'].max():.2f}€"
+    st.metric("🏆 Meilleure Opportunité", best_val)
 with k4:
     st.metric("🧠 Santé de la Veille", "Opérationnelle ✅")
 
@@ -143,7 +142,6 @@ st.divider()
 
 # 2. SECTION ANALYTIQUE ET CONTRÔLE
 # -------------------------------------------------------------------
-
 col_vis, col_ctrl = st.columns([3, 1])
 
 # --- Colonne VISUALISATION (Gauche) ---
@@ -151,118 +149,41 @@ with col_vis:
     tab_graph, tab_hist = st.tabs(["📈 Tendances Temporelles", "🔍 Historique Complet"])
     
     with tab_graph:
-        st.subheader("Analyse de l'évolution des prix")
-        # Filtrage dynamique par produit
-        all_prods = data['product_name'].unique()
-        selected_prod = st.selectbox("Sélectionner un produit pour l'analyse", options=all_prods, index=0)
-        filtered_df = data[data['product_name'] == selected_prod]
-        
-        # Graphique Plotly Express
-        fig = px.line(
-            filtered_df, x='timestamp', y=['price', 'target_price'],
-            color_discrete_map={'price': '#00ffcc', 'target_price': '#ff4b4b'},
-            markers=True, template="plotly_dark",
-            labels={"value": "Prix (€)", "timestamp": "Heure du Scan", "variable": "Type de Prix"}
-        )
-        # Personnalisation des lignes
-        fig.update_traces(mode="lines+markers")
-        fig.update_layout(
-            hovermode="x unified",
-            xaxis=dict(showgrid=False),
-            yaxis=dict(title="Prix en Euros", gridcolor="#2d3748")
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        if not data.empty:
+            all_prods = data['product_name'].unique()
+            selected_prod = st.selectbox("Sélectionner un produit", options=all_prods)
+            filtered_df = data[data['product_name'] == selected_prod]
+            
+            fig = px.line(filtered_df, x='timestamp', y=['price', 'target_price'],
+                         template="plotly_dark", color_discrete_sequence=['#00ffcc', '#ff4b4b'])
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            # Affichage d'un graphique vide élégant
+            st.info("📊 Les graphiques apparaîtront ici dès le premier scan.")
+            st.image("https://img.icons8.com/?size=100&id=103328&format=png&color=2d3748", width=100)
 
     with tab_hist:
-        st.subheader("Journal exhaustif des scans")
-        # Utilisation de formateurs pour colorer le verdict
-        hist_df = data[['timestamp', 'product_name', 'price', 'source', 'verdict']]
-        st.dataframe(hist_df, use_container_width=True, hide_index=True)
+        if not data.empty:
+            st.dataframe(data[['timestamp', 'product_name', 'price', 'verdict']], use_container_width=True)
+        else:
+            st.warning("Journal vide : Aucun historique détecté.")
 
 # --- Colonne CONTRÔLE (Droite) ---
 with col_ctrl:
-    st.subheader("🎮 Panneau de Commandement")
-    
-    # Bouton d'action principal
+    st.subheader("🎮 Commandes")
     if st.button("🚀 Lancer Scan IA", use_container_width=True):
-        with st.spinner("Analyse du marché en cours..."):
+        with st.spinner("Analyse..."):
             run_analysis()
-        st.success("Cycle terminé !")
         st.rerun()
 
     st.divider()
-
-    # Section de Configuration des Cibles
-    st.subheader("🎯 Cibles de Veille")
     
-    # 1. AJOUTER (Dans un expander)
-    with st.expander("➕ Ajouter une nouvelle Cible", expanded=True):
-        new_name = st.text_input("Nom du Produit", placeholder="ex: Sony PS5")
-        new_price = st.number_input("Prix d'alerte (€)", min_value=0.0, step=10.0)
-        
-        # Sélecteur de sites
-        selected_sites = st.multiselect(
-            "Sources",
-            options=["Amazon", "eBay"],
-            default=["Amazon", "eBay"],
-            help="Choisissez les sources de données pour ce produit."
-        )
-        
-        if st.button("Activer la Surveillance", use_container_width=True):
-            if new_name and new_price > 0 and selected_sites:
-                sites_str = ",".join(selected_sites)
-                db.add_target(new_name, new_price, sites_str)
-                st.toast(f"Cible activée : {new_name}", icon="✅")
+    # Formulaire d'ajout toujours présent
+    with st.expander("🎯 Nouvelle Cible", expanded=True):
+        n_name = st.text_input("Produit", key="fast_name")
+        n_price = st.number_input("Prix d'alerte", min_value=0.0, key="fast_price")
+        if st.button("Activer la veille", use_container_width=True):
+            if n_name and n_price > 0:
+                db.add_target(n_name, n_price, "Amazon,eBay")
+                st.success("Cible engagée")
                 st.rerun()
-            elif not selected_sites:
-                st.warning("Choisissez au moins une source.")
-
-    st.divider()
-
-    # 2. GÉRER / SUPPRIMER
-    if not targets_df.empty:
-        st.subheader("📋 Gérer vos Cibles")
-        for _, row in targets_df.iterrows():
-            # On met chaque cible dans son petit conteneur
-            with st.container(border=True):
-                c1, c2 = st.columns([4, 1])
-                with c1:
-                    st.markdown(f"**{row['name']}**")
-                    # Formatage des sites
-                    sites_badges = row['sites'].split(',')
-                    badges_html = " ".join([f'<span style="background-color: #242c3d; padding: 2px 5px; border-radius: 4px; font-size: 0.7rem;">{s}</span>' for s in sites_badges])
-                    st.markdown(f"{row['target_price']}€ | {badges_html}", unsafe_allow_html=True)
-                with c2:
-                    # Bouton poubelle
-                    if st.button("🗑️", key=f"del_{row['name']}"):
-                        db.remove_target(row['name'])
-                        st.rerun()
-    else:
-        st.info("Aucune cible de veille configurée.")
-
-st.divider()
-
-# 3. SECTION DIAGNOSTIC (En bas, plus discrète)
-# -------------------------------------------------------------------
-with st.expander("🛠️ Panneau de Diagnostic des Canaux", expanded=False):
-    col_d1, col_d2, col_d3 = st.columns(3)
-    with col_d1:
-        st.image("https://img.icons8.com/?size=100&id=11387&format=png&color=00ffcc", width=40)
-        st.markdown("**Notification Email**")
-        if st.button("📩 Test Email", key="test_email"):
-            # email_bot.send_email(...) # Désactivé pour le frontend
-            st.info("Requête de test envoyée.")
-    with col_d2:
-        st.image("https://img.icons8.com/?size=100&id=32274&format=png&color=00ffcc", width=40)
-        st.markdown("**Notification SMS**")
-        if st.button("📱 Test SMS", key="test_sms"):
-            # sms_bot.send_sms(...) # Désactivé pour le frontend
-            st.info("Requête de test envoyée.")
-    with col_d3:
-        st.image("https://img.icons8.com/?size=100&id=63653&format=png&color=a0aec0", width=40)
-        st.markdown("**Base de Données**")
-        st.write(f"Version: SQL C2-Pro")
-        if st.button("🧪 Inject Fake Data", key="test_fake"):
-            db.save_price("Test C2-Eagle", 15.50, "Debug-Bot", "Excellent Deal ✅")
-            st.rerun()
-
