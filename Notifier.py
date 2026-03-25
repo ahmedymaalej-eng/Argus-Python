@@ -94,12 +94,13 @@ class EmailNotifier:
         if not self.api_key:
             logging.error("[-] Abandon de l'envoi : Clé API absente.")
             return False
-
-        # Correction : syntaxe f-string propre
+        
+        # Accolades SIMPLES ici pour éviter le crash
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
+
         
         payload = {
             "from": self.from_email,

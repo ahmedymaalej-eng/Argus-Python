@@ -275,9 +275,19 @@ else:
     st.error("🚨 AUCUNE CIBLE ACTIVE : Le système est en attente de vos directives.")
 
     # Ce bloc place le formulaire TOUT EN HAUT de la page
+  # --- FORMULAIRE HAUTE VISIBILITÉ ---
     with st.container(border=True):
-        st.subheader("🎯 ACTIVER UNE NOUVELLE SURVEILLANCE")
-        col_c1, col_c2 = st.columns(2)
+        st.header("🎯 CONFIGURER UNE CIBLE")
+        nom = st.text_input("Nom du produit")
+        prix = st.number_input("Prix d'alerte (€)")
+        
+        # Ce bouton apparaîtra en GROS dès que le code sera corrigé
+        if st.button("🚀 CONFIRMER ET LANCER LA SURVEILLANCE", use_container_width=True):
+            if nom and prix > 0:
+                db.add_target(nom, prix, "Amazon,eBay")
+                st.success("Cible activée !")
+                st.rerun()
+
         
         with col_c1:
             new_name = st.text_input("📦 Nom du Produit", placeholder="ex: iPad Pro M5")
