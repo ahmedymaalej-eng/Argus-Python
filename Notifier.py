@@ -89,33 +89,33 @@ class EmailNotifier:
         """
         return self._execute_send(subject, full_html)
 
-def _execute_send(self, subject, html_body):
-    """Protocole de transport sécurisé vers l'API Resend (Niveau C2)."""
-    if not self.api_key:
-        logging.error("[-] Abandon de l'envoi : Clé API absente.")
-        return False
-
-    # Utilisation d'accolades simples pour des dictionnaires valides
-    headers = {
-        "Authorization": f"Bearer {self.api_key}",
-        "Content-Type": "application/json"
-    }
-    
-    payload = {
-        "from": self.from_email,
-        "to": [self.to_email],
-        "subject": subject,
-        "html": html_body
-    }
-
-    try:
-        response = requests.post(self.url, headers=headers, json=payload, timeout=10)
-        if response.status_code in [200, 201]:
-            logging.info(f"[+] SUCCÈS : Rapport expédié avec succès via Resend.")
-            return True
-        else:
-            logging.error(f"[-] ÉCHEC RESEND {response.status_code}: {response.text}")
+    def _execute_send(self, subject, html_body):
+        """Protocole de transport sécurisé vers l'API Resend (Niveau C2)."""
+        if not self.api_key:
+            logging.error("[-] Abandon de l'envoi : Clé API absente.")
             return False
-    except Exception as e:
-        logging.error(f"[-] ERREUR RÉSEAU : {e}")
-        return False
+
+        # Correction : syntaxe f-string propre
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "from": self.from_email,
+            "to": [self.to_email],
+            "subject": subject,
+            "html": html_body
+        }
+
+        try:
+            response = requests.post(self.url, headers=headers, json=payload, timeout=10)
+            if response.status_code in [200, 201]:
+                logging.info(f"[+] SUCCÈS : Rapport expédié avec succès.")
+                return True
+            else:
+                logging.error(f"[-] ÉCHEC RESEND {response.status_code}: {response.text}")
+                return False
+        except Exception as e:
+            logging.error(f"[-] ERREUR RÉSEAU : {e}")
+            return False

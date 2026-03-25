@@ -199,46 +199,7 @@ if not data.empty:
         with st.expander("➕ Ajouter une nouvelle Cible", expanded=True):
             new_name = st.text_input("Nom du Produit", placeholder="ex: Sony PS5")
             new_price = st.number_input("Prix d'alerte (€)", min_value=0.0, step=10.0)
-            else:
-    # -------------------------------------------------------------------
-    # INTERFACE HAUTE VISIBILITÉ (OPTIMISÉE IPAD)
-    # -------------------------------------------------------------------
-    st.title("🦅 Argus IA : Poste de Commandement")
-    
-    st.error("🚨 AUCUNE CIBLE ACTIVE : Le système est en attente de vos directives.")
-
-    # Ce bloc place le formulaire TOUT EN HAUT de la page
-    with st.container(border=True):
-        st.subheader("🎯 ACTIVER UNE NOUVELLE SURVEILLANCE")
-        col_c1, col_c2 = st.columns(2)
-        
-        with col_c1:
-            new_name = st.text_input("📦 Nom du Produit", placeholder="ex: iPad Pro M5")
-            new_price = st.number_input("💰 Prix d'alerte (€)", min_value=0.0, step=10.0)
-        
-        with col_c2:
-            selected_sites = st.multiselect(
-                "🌐 Sources de Scan",
-                options=["Amazon", "eBay"],
-                default=["Amazon", "eBay"]
-            )
-        
-        # Bouton large et coloré pour être immanquable
-        if st.button("🚀 LANCER LA SURVEILLANCE MAINTENANT", use_container_width=True):
-            if new_name and new_price > 0:
-                sites_str = ",".join(selected_sites)
-                db.add_target(new_name, new_price, sites_str)
-                st.success(f"✅ Cible '{new_name}' enregistrée avec succès !")
-                st.rerun()
-            else:
-                st.warning("⚠️ Veuillez remplir le nom et le prix avant d'activer.")
-
-    st.divider()
-    
-    # Informations complémentaires repliées pour ne pas encombrer l'écran
-    with st.expander("ℹ️ Aide au déploiement"):
-        st.info("Une fois la cible ajoutée, le tableau de bord se chargera automatiquement.")
-
+            
             # Sélecteur de sites
             selected_sites = st.multiselect(
                 "Sources",
@@ -307,25 +268,42 @@ if not data.empty:
 
 else:
     # -------------------------------------------------------------------
-    # PAGE VIDE : INSTRUCTIONS DE DÉMARRAGE
+    # INTERFACE HAUTE VISIBILITÉ (OPTIMISÉE IPAD)
     # -------------------------------------------------------------------
-    col_info1, col_info2 = st.columns([1, 3])
-    with col_info1:
-        st.image("https://img.icons8.com/?size=100&id=121175&format=png&color=00ffcc", width=200) # Eagle Icon
-    with col_info2:
-        st.title("🦅 Bienvenue sur Argus IA : Poste de Commandement C2")
-        st.markdown("""
-        Votre système de veille de marché est **prêt pour l'engagement**. La base de données est actuellement vierge de toute cible.
+    st.title("🦅 Argus IA : Poste de Commandement")
+    
+    st.error("🚨 AUCUNE CIBLE ACTIVE : Le système est en attente de vos directives.")
+
+    # Ce bloc place le formulaire TOUT EN HAUT de la page
+    with st.container(border=True):
+        st.subheader("🎯 ACTIVER UNE NOUVELLE SURVEILLANCE")
+        col_c1, col_c2 = st.columns(2)
         
-        ### Instructions de déploiement :
+        with col_c1:
+            new_name = st.text_input("📦 Nom du Produit", placeholder="ex: iPad Pro M5")
+            new_price = st.number_input("💰 Prix d'alerte (€)", min_value=0.0, step=10.0)
         
-        1.  **🎯 Définir une Cible** : Dans le panneau de droite, entrez le nom d'un produit, un prix d'alerte et sélectionnez vos sources.
-        2.  **🚀 Lancer l'Analyse** : Une fois la cible activée, cliquez sur 'Lancer Scan IA' pour initier le premier cycle de collecte et de décision.
-        3.  **Analyse** : Le tableau de bord se peuplera automatiquement de KPIs, de graphiques de tendances et de verdicts IA.
+        with col_c2:
+            selected_sites = st.multiselect(
+                "🌐 Sources de Scan",
+                options=["Amazon", "eBay"],
+                default=["Amazon", "eBay"]
+            )
         
-        ### Rappel de Configuration (Back-end) :
-        * Assurez-vous que vos clés **Twilio** et **Resend** sont bien configurées dans leurs fichiers respectifs pour recevoir les alertes omicanales.
-        * Vérifiez que votre base de données SQL a été mise à jour pour accepter le paramètre `sites` via la commande `ALTER TABLE`.
-        
-        """)
+        # Bouton large et coloré pour être immanquable
+        if st.button("🚀 LANCER LA SURVEILLANCE MAINTENANT", use_container_width=True):
+            if new_name and new_price > 0:
+                sites_str = ",".join(selected_sites)
+                db.add_target(new_name, new_price, sites_str)
+                st.success(f"✅ Cible '{new_name}' enregistrée avec succès !")
+                st.rerun()
+            else:
+                st.warning("⚠️ Veuillez remplir le nom et le prix avant d'activer.")
+
+    st.divider()
+    
+    # Informations complémentaires repliées pour ne pas encombrer l'écran
+    with st.expander("ℹ️ Aide au déploiement"):
+        st.info("Une fois la cible ajoutée, le tableau de bord se chargera automatiquement.")
+
 
