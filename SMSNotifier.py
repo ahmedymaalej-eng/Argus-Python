@@ -10,8 +10,8 @@ class SMSNotifier:
         # REMPLACEZ LES VALEURS CI-DESSOUS PAR VOS CLÉS TWILIO RÉELLES
         self.account_sid = os.getenv("TWILIO_ACCOUNT_SID")
         self.auth_token = os.getenv("TWILIO_AUTH_TOKEN")
-        self.twilio_number = "+13612139521"
-        self.my_phone = "+14387950071"
+        self.twilio_number = os.getenv("TWILIO_PHONE_NUMBER")
+        self.my_phone = os.getenv("MY_PHONE_NUMBER")
 
         if not all([self.account_sid, self.auth_token, self.twilio_number]):
             logging.error("[-] SMS CONFIG MANQUANTE : Vérifiez vos clés Twilio.")
@@ -29,12 +29,12 @@ class SMSNotifier:
             logging.error("[-] Client SMS non initialisé.")
             return False
         
-        try:
+        try:# SMSNotifier.py - Correction de la ligne 27
             msg = self.client.messages.create(
                 body=message,
                 from_=self.twilio_number,
                 to=self.my_phone
-            )
+            ) # <-- Assurez-vous que cette parenthèse est bien présente
             logging.info(f"[+] SMS envoyé ! SID: {msg.sid}")
             return True
         except Exception as e:

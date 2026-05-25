@@ -18,7 +18,7 @@ class EmailNotifier:
         
         # Configuration des émetteurs et destinataires
         self.from_email = "onboarding@resend.dev"
-        self.to_email = "ahmed.y.maalej@gmail.com"
+        self.to_email = "ahmed.y.maalej@icloud.com"
 
         # Vérification d'intégrité au démarrage
         if not self.api_key:

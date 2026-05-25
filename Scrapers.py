@@ -4,13 +4,14 @@ import time, re, logging, random
 from abc import ABC, abstractmethod
 
 def fetch_with_retry(url):
-    # Liste de User-Agents pour alterner
+    
+    # Liste de User-Agents pour alterner  
     user_agents = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
     ]
-    
+      
     headers = {
         "User-Agent": random.choice(user_agents),
         "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
@@ -135,3 +136,4 @@ class EbayScraper(BaseScraper):
                         
         logging.warning(f"[-] Aucun résultat organique pertinent sur eBay pour : {keyword}")
         return 0.0, []
+    

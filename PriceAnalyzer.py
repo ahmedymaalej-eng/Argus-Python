@@ -1,4 +1,4 @@
-import os
+
 from SMSNotifier import SMSNotifier 
 from analyzer import SentimentAnalyzer # <--- On importe votre nouveau fichier !
 
